@@ -1,176 +1,75 @@
-#include <iostream>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-using namespace std;
+#define MAX_ATLETAS 100
+#define MAX_RONDAS 10
 
-struct nodo{
-    double tiempo;
-	string nombre;
-	int numero;
-    struct nodo *sgte;
-};
+// Estructura para almacenar los datos de un atleta
+typedef struct {
+    char nombre[50];
+    int numero;
+    float tiempos[MAX_RONDAS]; // FIFO
+    float promedio; // LIFO
+} Atleta;
 
-typedef struct nodo *Tlista;
-
-Tlista inicio, fin;
-
-void registrarCorredor( Tlista &cab, Tlista &fin) 
-{
-	int contador = 1;
-	
-     Tlista q, t;
-     
-     for(int i=0; i<contador; i++)
-     {
-         q = new(struct nodo);
-         cout<<"Ingrese el nombre del corredor: \n";
-         cin>>q->nombre;
-         cout<<"Ingrese el tiempo del corredor en segundos: \n";
-         cin>>q->tiempo;
-
-         
-         if(cab==NULL)
-         {
-              q->sgte = cab;
-              cab  = q;
-              fin     = q;          
-         }
-         else
-         {
-              q->sgte   = fin->sgte;
-              fin->sgte = q;
-              fin       = q;
-         }
-     }
-     
-     cout<<"\n\n\tcorredor registrado con exito......"<<endl;
+// Función para solicitar los datos de un atleta al usuario
+Atleta solicitar_datos() {
+    Atleta atleta;
+    printf("Ingrese el nombre del atleta: ");
+    scanf("%s", atleta.nombre);
+    printf("Ingrese el numero asignado al atleta: ");
+    scanf("%d", &atleta.numero);
+    return atleta;
 }
 
-void mostrarLista(Tlista inicio)
-{
-    
-     while(inicio != NULL)
-     {
-          cout <<inicio->nombre<<" " << inicio->tiempo <<" Sg\n";
-          inicio = inicio->sgte;
-     }
-
+// Función para registrar el tiempo de un atleta en el arreglo FIFO
+void registrar_tiempo(Atleta* atleta) {
+    float tiempo;
+    printf("Ingrese el tiempo del atleta %s en esta ronda: ", atleta->nombre);
+    scanf("%f", &tiempo);
+    // Desplazar los tiempos anteriores hacia la izquierda
+    for (int i = 0; i < MAX_RONDAS-1; i++) {
+        atleta->tiempos[i] = atleta->tiempos[i+1];
+    }
+    // Agregar el nuevo tiempo al final del arreglo FIFO
+    atleta->tiempos[MAX_RONDAS-1] = tiempo;
 }
 
-void ordenarLista(Tlista lista)
-{
-     Tlista actual , siguiente;
-     double t;
-     
-     actual = lista;
-
-     while(actual->sgte != NULL)
-     {
-          
-          siguiente = actual->sgte;
-          
-          
-          while(siguiente!=NULL)
-          {
-               
-               if(actual->tiempo > siguiente->tiempo)
-               {
-                   
-                    t = siguiente->tiempo;
-                    
-                    siguiente->tiempo = actual->tiempo;
-                    actual->tiempo = t;          
-               }
-              
-               siguiente = siguiente->sgte;                    
-          }    
-          
-          actual = actual->sgte;
-          siguiente = actual->sgte;
-           
-     }
-     
-     cout<<"\n\n\tLista ordenada..."<<endl;
-}
-
-void promedioTiempo(Tlista inicio){
-	int promedio = 0, tamano = 0, suma = 0;
-	
-	while(inicio != NULL){
-		suma += inicio->tiempo;
-		tamano += (sizeof(inicio->tiempo))/8;
-		inicio = inicio->sgte;	
-	}
-	promedio = suma/tamano;
-	
-	cout<<"El promedio de tiempo en segundos es de: "<<promedio<<" Sg"<<endl;
-}
-
-
-void menu()
-{
-    cout<<"\n\t\tREGISTRO DE TIEMPOS DE CARRERAS DE CORREDORES\n\n";
-    cout<<" 1. REGISTRAR CORREDOR                  "<<endl;
-    cout<<" 2. MOSTRAR CORREDORES                   "<<endl;
-    cout<<" 3. ORDENAR CORREDORES POR TIEMPO DE LLEGADA"<<endl;
-    cout<<" 4. PROMEDIO DE TIEMPPO                  "<<endl;
-    cout<<" 5. SALIR                            "<<endl;
-
-    cout<<"\n INGRESE OPCION: ";
-}
-
-
-
-
-int main()
-{
-    inicio = NULL;
-    fin    = NULL;
-    
-    int op;     
-    int num;   
-
-
-    do
-    {
-        menu();  cin>> op;
-
-        switch(op)
-        {      
-            case 1:
-                 
-                 registrarCorredor( inicio, fin );
-            break;
-
-
-            case 2:
-                 cout<<"\n\n LISTA:\n\n";
-                 
-                 mostrarLista( inicio );
-            break;
-            
-            
-            case 3:
-                
-                 ordenarLista( inicio );
-            break; 
-			
-			
-			case 4:
-				promedioTiempo( inicio );           
-			break;
-			
-			
-			default: cout<<"Error de Opcion"<<endl;
+// Función para calcular el promedio de un atleta en base a los tiempos en el arreglo FIFO
+float calcular_promedio(Atleta atleta) {
+    int num_rondas = 0;
+    float suma_tiempos = 0;
+    for (int i = 0; i < MAX_RONDAS; i++) {
+        if (atleta.tiempos[i] > 0) {
+            num_rondas++;
+            suma_tiempos += atleta.tiempos[i];
         }
-		
-        cout<<endl<<endl;
-        system("pause");  system("cls");
-
-    }while(op!=5);
-
-
-   system("pause");
-   
-   return 0;
+    }
+    if (num_rondas > 0) {
+        return suma_tiempos / num_rondas;
+    } else {
+        return 0;
+    }
 }
+
+// Función para ordenar el arreglo LIFO de atletas por promedio (de menor a mayor)
+void ordenar_lifo(Atleta* atletas, int num_atletas) {
+    for (int i = 0; i < num_atletas-1; i++) {
+        for (int j = i+1; j < num_atletas; j++) {
+            if (atletas[i].promedio > atletas[j].promedio) {
+                Atleta temp = atletas[i];
+                atletas[i] = atletas[j];
+                atletas[j] = temp;
+            }
+        }
+    }
+
+
+  printf("\nResultados de la prueba de atletismo:\n");
+    printf("=====================================\n");
+    for (int i = 0; i < num_atletas; i++) {
+        printf("%d. %s - Promedio: %.2f\n", i+1, atletas[i].nombre, atletas[i].promedio);
+    }
+
+    return 0;
