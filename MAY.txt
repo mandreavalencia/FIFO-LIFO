@@ -1,0 +1,121 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <malloc.h>
+
+using namespace std;
+
+struct Copago {
+    double valor;
+    Copago *izquierdo;
+    Copago *derecho;
+};
+
+struct Paciente {
+    int id;
+    int anioNacimiento;
+    Copago *copagos;
+    Paciente *izquierdo;
+    Paciente *derecho;
+};
+
+Paciente *crearPaciente(int id, int anio) {
+    Paciente *nuevoPaciente = (Paciente *)malloc(sizeof(Paciente));
+    nuevoPaciente->id = id;
+    nuevoPaciente->anioNacimiento = anio;
+    nuevoPaciente->copagos = NULL;
+    nuevoPaciente->izquierdo = NULL;
+    nuevoPaciente->derecho = NULL;
+    return nuevoPaciente;
+}
+
+Copago *crearCopago(double valor) {
+    Copago *nuevoCopago = (Copago *)malloc(sizeof(Copago));
+    nuevoCopago->valor = valor;
+    nuevoCopago->izquierdo = NULL;
+    nuevoCopago->derecho = NULL;
+    return nuevoCopago;
+}
+
+void agregarCopago(Copago *&raiz, double valor) {
+    if (raiz == NULL) {
+        raiz = crearCopago(valor);
+    } else if (valor < raiz->valor) {
+        agregarCopago(raiz->izquierdo, valor);
+    } else {
+        agregarCopago(raiz->derecho, valor);
+    }
+}
+
+void agregarPaciente(Paciente *&raiz, int id, int anio) {
+    if (raiz == NULL) {
+        raiz = crearPaciente(id, anio);
+    } else if (anio < raiz->anioNacimiento) {
+        agregarPaciente(raiz->izquierdo, id, anio);
+    } else {
+        agregarPaciente(raiz->derecho, id, anio);
+    }
+}
+
+double calcularTotalCopagos(Copago *raiz) {
+    if (raiz == NULL) {
+        return 0;
+    }
+    return raiz->valor + calcularTotalCopagos(raiz->izquierdo) + calcularTotalCopagos(raiz->derecho);
+}
+
+void calcularPromedioPorAnio(Paciente *raiz, int &cantidad, double &suma) {
+    if (raiz == NULL) {
+        return;
+    }
+    calcularPromedioPorAnio(raiz->izquierdo, cantidad, suma);
+    cantidad++;
+    suma += calcularTotalCopagos(raiz->copagos);
+    calcularPromedioPorAnio(raiz->derecho, cantidad, suma);
+}
+
+int main() {
+    Paciente *pacientes = NULL;
+
+    int opcion;
+    do {
+        cout << "1. Agregar paciente\n2. Calcular valores cancelados\n3. Calcular promedio por año de nacimiento\n0. Salir\nOpcion: ";
+        cin >> opcion;
+
+        if (opcion == 1) {
+            int id, anio;
+            cout << "Ingrese ID del paciente: ";
+            cin >> id;
+            cout << "Ingrese año de nacimiento del paciente: ";
+            cin >> anio;
+
+            agregarPaciente(pacientes, id, anio);
+
+            double valor;
+            cout << "Ingrese el valor cancelado por el paciente (ingrese -1 para terminar): ";
+            cin >> valor;
+
+            while (valor != -1) {
+                agregarCopago(pacientes->copagos, valor);
+                cout << "Ingrese el valor cancelado por el paciente (ingrese -1 para terminar): ";
+                cin >> valor;
+            }
+
+        } else if (opcion == 2) {
+            cout << "Valor cancelado por cada paciente:\n";
+            for (Paciente *p = pacientes; p != NULL;) {
+                cout << "Paciente " << p->id << ": " << calcularTotalCopagos(p->copagos) << endl;
+                p = p->derecho;
+            }
+
+        } else if (opcion == 3) {
+            int cantidad = 0;
+            double suma = 0;
+            calcularPromedioPorAnio(pacientes, cantidad, suma);
+            double promedio = suma / cantidad;
+            cout << "Promedio cancelado por pacientes agrupados por año de nacimiento: " << promedio << endl;
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
