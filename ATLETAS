@@ -53,8 +53,14 @@ float calcular_promedio(Atleta atleta) {
     }
 }
 
-// Función para ordenar el arreglo LIFO de atletas por promedio (de menor a mayor)
+// Función para ordenar el arreglo LIFO de atletas por promedio (de menor a mayor) y mostrar los resultados
 void ordenar_lifo(Atleta* atletas, int num_atletas) {
+    // Calcular el promedio de cada atleta
+    for (int i = 0; i < num_atletas; i++) {
+        atletas[i].promedio = calcular_promedio(atletas[i]);
+    }
+
+    // Ordenar el arreglo LIFO por promedio (de menor a mayor)
     for (int i = 0; i < num_atletas-1; i++) {
         for (int j = i+1; j < num_atletas; j++) {
             if (atletas[i].promedio > atletas[j].promedio) {
@@ -65,11 +71,41 @@ void ordenar_lifo(Atleta* atletas, int num_atletas) {
         }
     }
 
-
-  printf("\nResultados de la prueba de atletismo:\n");
+    // Mostrar los resultados de la prueba de atletismo
+    printf("\nResultados de la prueba de atletismo:\n");
     printf("=====================================\n");
     for (int i = 0; i < num_atletas; i++) {
         printf("%d. %s - Promedio: %.2f\n", i+1, atletas[i].nombre, atletas[i].promedio);
     }
+}
+
+int main() {
+    Atleta atletas[MAX_ATLETAS];
+    int num_atletas = 0;
+
+    // Pedir los datos de los atletas
+    printf("Ingrese los datos de los atletas:\n");
+    printf("(Para terminar todo el registro de la primera y segunda vuelva, ingrese la 'fin'.)\n");
+    while (1) {
+        Atleta atleta = solicitar_datos();
+        if (strcmp(atleta.nombre, "fin") == 0) {
+            break;
+        }
+        atletas[num_atletas] = atleta;
+        num_atletas++;
+    }
+
+    // Registrar los tiempos de los atletas en cada ronda
+    printf("\nIngrese los tiempos de los atletas en cada ronda:\n");
+    for (int ronda = 1; ronda <= MAX_RONDAS; ronda++) {
+        printf("\nRonda %d:\n", ronda);
+        for (int i = 0; i < num_atletas; i++) {
+            registrar_tiempo(&atletas[i]);
+        }
+    }
+
+    // Ordenar los atletas por promedio y mostrar los resultados
+    ordenar_lifo(atletas, num_atletas);
 
     return 0;
+}
