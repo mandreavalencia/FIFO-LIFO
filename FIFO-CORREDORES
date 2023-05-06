@@ -1,0 +1,87 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+struct Atleta {
+    string nombre;
+    vector<double> tiempos;
+};
+
+int main() {
+    vector<Atleta> atletas;
+    bool seguir = true;
+
+    while (seguir) {
+        int opcion;
+        cout << "Menu:" << endl;
+        cout << "1. Registrar atleta" << endl;
+        cout << "2. Registrar tiempo" << endl;
+        cout << "3. Calcular el promedio de tiempos de los atletas con mas de 2 tiempos" << endl;
+        cout << "4. Salir" << endl;
+        cout << "Ingrese una opcion: ";
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1: {
+                string nombre;
+                cout << "Ingrese el nombre del atleta: ";
+                cin >> nombre;
+                atletas.push_back({nombre, {}});
+                break;
+            }
+            case 2: {
+                int indice;
+                cout << "Ingrese el indice del atleta al que desea agregar un tiempo: ";
+                cin >> indice;
+
+                if (indice <= 1 && indice < atletas.size()) {
+                    double tiempo;
+                    char agregarOtro = 's';
+
+                    while (agregarOtro == 's') {
+                        cout << "Ingrese un tiempo para el atleta " << atletas[indice].nombre << ": ";
+                        cin >> tiempo;
+                        atletas[indice].tiempos.push_back(tiempo);
+                        cout << "¿Desea agregar otro tiempo? (s/n): ";
+                        cin >> agregarOtro;
+                    }
+                } else {
+                    cout << "El indice ingresado no es valido." << endl;
+                }
+                break;
+            }
+            case 3: {
+                int contador = 0;
+                double sumaTiempos = 0;
+
+                for (int i = 0; i < atletas.size(); i++) {
+                    if (atletas[i].tiempos.size() >1) {
+                        contador++;
+                        for (int j = 0; j < atletas[i].tiempos.size(); j++) {
+                            sumaTiempos += atletas[i].tiempos[j];
+                        }
+                    }
+                }
+
+                if (contador > 0) {
+                    double promedio = sumaTiempos / contador;
+                    cout << "El promedio de tiempos de los atletas con mas de 1 tiempo es: " << promedio << endl;
+                } else {
+                    cout << "No hay atletas con mas de 2 tiempos." << endl;
+                }
+                break;
+            }
+            case 4: {
+                seguir = false;
+                break;
+            }
+            default: {
+                cout << "Opcion no valida." << endl;
+                break;
+            }
+        }
+    }
+
+    return 0;
+}
