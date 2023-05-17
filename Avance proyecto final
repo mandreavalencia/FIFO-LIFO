@@ -1,113 +1,96 @@
 #include <iostream>
-#include <vector>
+#include <stdlib.h>
+
+//Avance de proyecto solicitud de datos del atleta
+//Ana Vente 
+//Michell Andrea
+//Yesenia
 
 using namespace std;
 
-class Atleta {
-public:
-    string nombre;
+
+struct atleta {
     int numero;
-    vector<double> tiempos;
-
-    Atleta(string nombre, int numero) {
-        this->nombre = nombre;
-        this->numero = numero;
-    }
-
-    void agregarTiempo(double tiempo) {
-        this->tiempos.push_back(tiempo);
-    }
-
-    void calcularPromedio() {
-        if (tiempos.size() >= 2) {
-            double promedio = (tiempos[tiempos.size() - 2] + tiempos[tiempos.size() - 1]) / 2.0;
-            tiempos.erase(tiempos.begin(), tiempos.end() - 2);
-            agregarTiempo(promedio);
-        }
-    }
-
-    double promedio() {
-        double sum = 0;
-        for (double tiempo : tiempos) {
-            sum += tiempo;
-        }
-        return sum / tiempos.size();
-    }
+    char nombre[20];
+    double tiempo;
+    int vuelta;
+    atleta *sig;
 };
+atleta *cab, *aux, *aux2;
 
-class Prueba {
-public:
-    vector<Atleta> atletas;
 
-    void agregarAtleta(string nombre, int numero) {
-        atletas.emplace_back(nombre, numero);
-    }
-
-    void registrarTiempos() {
-        int cantidadTiempos;
-        double tiempo;
-        for (Atleta& atleta : atletas) {
-            cout << "Ingrese la cantidad de tiempos para el atleta " << atleta.nombre << " (numero " << atleta.numero << "): ";
-            cin >> cantidadTiempos;
-            cout << "Ingrese los tiempos para el atleta " << atleta.nombre << " (numero " << atleta.numero << "): ";
-            for (int i = 0; i < cantidadTiempos; i++) {
-                cin >> tiempo;
-                atleta.agregarTiempo(tiempo);
-            }
-            atleta.calcularPromedio();
+int registrar() {
+    aux = (struct atleta*) malloc (sizeof(struct atleta));
+    aux->vuelta = 0;
+    aux->sig = NULL;
+    cout<<"Ingrese el nombre del atleta: ";
+    cin>>aux->nombre;
+    cout<<"Ingrese el numero del atleta: ";
+    cin>>aux->numero;
+    if(!cab){
+        cab = aux;
+        aux = NULL;
+        free(aux);
+    } else {
+        aux2 = cab;
+        while(aux2->sig!=NULL){
+            aux2 = aux2->sig;
         }
+        aux2->sig=aux;
+        aux = aux2 = NULL;
+        free(aux);
+        free(aux2);
     }
+}
+    
+    int mostrar(){
+    for (aux = cab; aux!=NULL; aux = aux->sig){
+        cout<<"Atleta: "<<aux->nombre<<"  numero: "<<aux->numero<< "  "" Vuelta: "<<aux->vuelta<< "  ""Tiempo: " <<aux->tiempo<<endl;
+    }
+}
 
-    void mostrarResultados() {
-        for (Atleta& atleta : atletas) {
-            cout << "Atleta " << atleta.nombre << " (numero " << atleta.numero << "): ";
-            if (atleta.tiempos.empty()) {
-                cout << "No hay tiempos registrados" << endl;
-            } else {
-                cout << "Promedio: " << atleta.promedio() << " - utlimos tiempos: ";
-                for (double tiempo : atleta.tiempos) {
-                    cout << tiempo << " ";
-                }
-                cout << endl;
-            }
+
+    int agregarVuelta(){
+    int numatl;
+    int bandera = 0;    
+    mostrar();
+    cout<<"Registre el numero del atleta"<<endl;
+    cin>>numatl;
+    aux = cab;
+    while(aux!=NULL){        
+        if(aux->numero == numatl){            
+            bandera = 1; 
+            aux->vuelta++;
+            cout<<"Es el atleta: "<<aux->nombre<<" ("<<aux->vuelta<<") :: "<<aux->tiempo<<endl;
+            cout<<"Registre el tiempo: "<<endl;
+            cin>>aux->tiempo;
+
         }
+        aux = aux->sig;
     }
-};
+    if(bandera==0){
+        cout<<"El atleta no existe"<<endl;
+    }
+        
+}
 
-int main() {
-    Prueba prueba;
-    int opcion;
-    string nombre;
-    int numero;
+    
+    int main() {
+    int opcion = 0;
+    do {
+        cout<<endl<<endl<<"1. Registrar atletas"<<endl;
+        cout<<"2. ver atletas"<<endl;
+        cout<<"3. Registrar vuelta"<<endl;
+        cout<<"4. Mostrar promedios"<<endl;
+        cin>>opcion;
+        switch(opcion){
+            case 1: registrar(); 
+            break;
+            case 2: mostrar(); 
+            break;
+            case 3:agregarVuelta();
 
-    while (true) {
-        cout << "MENU:" << endl;
-        cout << "1. Agregar atleta" << endl;
-        cout << "2. Registrar tiempos" << endl;
-        cout << "3. Mostrar resultados" << endl;
-        cout << "4. Salir" << endl;
-        cout << "Selecciona una opcion: ";
-        cin >> opcion;
-
-        switch (opcion) {
-            case 1:
-                cout << "Ingrese el nombre del atleta: ";
-                cin >> nombre;
-                cout << "Ingrese el numero asignado al atleta: ";
-                cin >> numero;
-                prueba.agregarAtleta(nombre, numero);
-                break;
-            case 2:
-                prueba.registrarTiempos();
-                break;
-            case 3:
-                prueba.mostrarResultados();
-                break;
-            case 4:
-                return 0;
-            default:
-                cout << "Opcion invalida" << endl;
-                break;
         }
-    }
+    } while(opcion!=5);
+    return 0;
 }
