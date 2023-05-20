@@ -1,96 +1,190 @@
 #include <iostream>
-#include <stdlib.h>
+#include <vector>
+#include <unordered_map>
 
-//Avance de proyecto solicitud de datos del atleta
-//Ana Vente 
-//Michell Andrea
-//Yesenia
+
+//MICHELL VALENCIA
+YESENIA OROBIO
+ANA VENTE
 
 using namespace std;
 
-
-struct atleta {
+// Clase que representa a un atleta
+class Atleta {
+public:
+    string nombre;
     int numero;
-    char nombre[20];
-    double tiempo;
-    int vuelta;
-    atleta *sig;
+    vector<double> tiempos;
+
+  // Constructor que inicializa el nombre y el numero del atleta
+    Atleta(string nombre, int numero) {
+        this->nombre = nombre;
+        this->numero = numero;
+    }
+
+    void agregarTiempo(double tiempo) {
+        this->tiempos.push_back(tiempo);
+    }
+
+    double promedio() {
+        double sum = 0;
+        for (double tiempo : tiempos) {
+            sum += tiempo;
+        }
+        return sum / tiempos.size();
+    }
 };
-atleta *cab, *aux, *aux2;
 
+class NodoAtleta {
+public:
+    Atleta atleta;
+    NodoAtleta* izquierdo;
+    NodoAtleta* derecho;
 
-int registrar() {
-    aux = (struct atleta*) malloc (sizeof(struct atleta));
-    aux->vuelta = 0;
-    aux->sig = NULL;
-    cout<<"Ingrese el nombre del atleta: ";
-    cin>>aux->nombre;
-    cout<<"Ingrese el numero del atleta: ";
-    cin>>aux->numero;
-    if(!cab){
-        cab = aux;
-        aux = NULL;
-        free(aux);
-    } else {
-        aux2 = cab;
-        while(aux2->sig!=NULL){
-            aux2 = aux2->sig;
+    NodoAtleta(Atleta atleta) {
+        this->atleta = atleta;
+        this->izquierdo = nullptr;
+        this->derecho = nullptr;
+    }
+
+    void agregarTiempo(double tiempo) {
+        this->atleta.agregarTiempo(tiempo);
+    }
+
+    double promedio() {
+        return this->atleta.promedio();
+    }
+};
+
+class ArbolAtletas {
+public:
+    NodoAtleta* raiz;
+
+    ArbolAtletas() {
+        this->raiz = nullptr;
+    }
+
+// agrega un atleta al árbol
+    void agregarAtleta() {
+        string nombre;
+        int numero;
+        cout << "Ingrese el nombre del atleta: ";
+        cin >> nombre;
+        cout << "Ingrese el número asignado al atleta: ";
+        cin >> numero;
+
+        Atleta atleta(nombre, numero);
+        NodoAtleta* nuevoNodo = new NodoAtleta(atleta);
+
+        if (this->raiz == nullptr) {
+            this->raiz = nuevoNodo;
+        } else {
+            NodoAtleta* actual = this->raiz;
+            while (true) {
+                if (numero < actual->atleta.numero) {
+                    if (actual->izquierdo == nullptr) {
+                        actual->izquierdo = nuevoNodo;
+                        break;
+                    } else {
+                        actual = actual->izquierdo;
+                    }
+                } else if (numero > actual->atleta.numero) {
+                   if (actual->derecho == nullptr) {
+                        actual->derecho = nuevoNodo;
+                        break;
+                    } else {
+                        actual = actual->derecho;
+                    }
+                } else {
+                    cout << "Ya existe un atleta con ese numero." << endl;
+                    delete nuevoNodo;
+                    break;
+                }
+            }
         }
-        aux2->sig=aux;
-        aux = aux2 = NULL;
-        free(aux);
-        free(aux2);
     }
-}
-    
-    int mostrar(){
-    for (aux = cab; aux!=NULL; aux = aux->sig){
-        cout<<"Atleta: "<<aux->nombre<<"  numero: "<<aux->numero<< "  "" Vuelta: "<<aux->vuelta<< "  ""Tiempo: " <<aux->tiempo<<endl;
-    }
-}
 
+// agrega un tiempo a un atleta existente en el arbol
+    void agregarTiempo() {
+        int numero;
+        double tiempo;
+        cout << "Ingrese el numero del atleta: ";
+        cin >> numero;
+        cout << "Ingrese el tiempo del atleta: ";
+        cin >> tiempo;
 
-    int agregarVuelta(){
-    int numatl;
-    int bandera = 0;    
-    mostrar();
-    cout<<"Registre el numero del atleta"<<endl;
-    cin>>numatl;
-    aux = cab;
-    while(aux!=NULL){        
-        if(aux->numero == numatl){            
-            bandera = 1; 
-            aux->vuelta++;
-            cout<<"Es el atleta: "<<aux->nombre<<" ("<<aux->vuelta<<") :: "<<aux->tiempo<<endl;
-            cout<<"Registre el tiempo: "<<endl;
-            cin>>aux->tiempo;
-
+        NodoAtleta* actual = this->buscarAtleta(numero);
+        if (actual != nullptr) {
+            actual->agregarTiempo(tiempo);
+        } else {
+            cout << "No se encontró ningun atleta con ese numero." << endl;
         }
-        aux = aux->sig;
     }
-    if(bandera==0){
-        cout<<"El atleta no existe"<<endl;
+ //calcula el promedio de los tiempos de un atleta existente en el arbol
+    double promedio(int numero) {
+        NodoAtleta* actual = this->buscarAtleta(numero);
+        if (actual != nullptr) {
+            return actual->promedio();
+        } else {
+            cout << "No se encontro ningun atleta con ese numero." << endl;
+            return 0;
+        }
     }
-        
-}
+// buscar atleta en en el abol con su numero asigando
+private:
+    NodoAtleta* buscarAtleta(int numero) {
+        NodoAtleta* actual = this->raiz;
+        while (actual != nullptr) {
+            if (numero < actual->atleta.numero) {
+                actual = actual->izquierdo;
+            } else if (numero > actual->atleta.numero) {
+                actual = actual->derecho;
+            } else {
+                return actual;
+            }
+        }
+        return nullptr;
+    }
+};
 
-    
-    int main() {
-    int opcion = 0;
+int main() {
+    ArbolAtletas arbol;
+    int opcion;
+
+// menu de opciones
     do {
-        cout<<endl<<endl<<"1. Registrar atletas"<<endl;
-        cout<<"2. ver atletas"<<endl;
-        cout<<"3. Registrar vuelta"<<endl;
-        cout<<"4. Mostrar promedios"<<endl;
-        cin>>opcion;
-        switch(opcion){
-            case 1: registrar(); 
-            break;
-            case 2: mostrar(); 
-            break;
-            case 3:agregarVuelta();
+        cout << "===BIEVENIDO===" << endl;
+        cout << "1. Agregar atleta" << endl;
+        cout << "2. Registrar tiempo" << endl;
+        cout << "3. Mostrar promedio" << endl;
+        cout << "4. Salir" << endl;
+        cout << "Ingrese una opcion: ";
+        cin >> opcion;
 
-        }
-    } while(opcion!=5);
+        switch (opcion) {
+            case 1:
+                arbol.agregarAtleta();
+                break;
+            case 2:
+                arbol.agregarTiempo();
+                break;
+            case 3:
+                int numero;
+                cout << "Ingrese el numero del atleta: ";
+                cin >> numero;
+                double promedio = arbol.promedio(numero);
+                if (promedio != 0) {
+                    cout << "El promedio de tiempos del atleta " << numero << " es: " << promedio << endl;
+                }
+                break;
+            case 4:
+                cout << "¡Hasta luego!" << endl;
+                break;
+            default:
+                cout << "OpciOn invalida, intente de nuevo."
+            << endl;
+    }while (opcion != 4);
+
     return 0;
+}
 }
