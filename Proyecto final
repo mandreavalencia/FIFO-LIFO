@@ -1,0 +1,265 @@
+#include <iostream>
+#include <stdlib.h>
+#include <cstring>
+
+using namespace std;
+
+
+struct Atleta {
+    int numero;
+    char nombre[20];
+    double tiempo;
+    int vuelta;
+    double tiempoTotal;
+    double promedio;
+    Atleta *izq;
+    Atleta *der;
+    
+};
+
+//Crea un nuevo atleta 
+    Atleta* crearAtleta(int numero, char nombre[], double tiempo, int vuelta, double tiempoTotal, double promedio ) {
+    Atleta* nuevoAtleta = (Atleta*)malloc(sizeof(Atleta));
+    strcpy (nuevoAtleta->nombre, nombre);
+    nuevoAtleta->numero = numero;
+    nuevoAtleta->tiempo = tiempo;
+    nuevoAtleta->vuelta = vuelta;
+    nuevoAtleta->tiempoTotal = tiempoTotal;
+    nuevoAtleta->promedio = promedio;
+    nuevoAtleta->izq = NULL;
+    nuevoAtleta->der = NULL;
+    return nuevoAtleta;
+}
+
+Atleta* insertarAtleta(Atleta* raiz, Atleta* nuevoAtleta) {
+    if (raiz == NULL) {
+        return nuevoAtleta;
+    }
+
+    if (nuevoAtleta->numero < raiz->numero) {
+        raiz->izq = insertarAtleta(raiz->izq, nuevoAtleta);
+    } else if (nuevoAtleta->numero > raiz->numero) {
+        raiz->der = insertarAtleta(raiz->der, nuevoAtleta);
+    }
+
+    return raiz;
+}
+    
+ //Buscar los atletas (hacer comparacion en caso de numeros iguales)  
+   Atleta* buscarAtleta(Atleta* raiz, int numero) {
+    if (raiz == NULL || raiz->numero == numero) {
+        return raiz;
+    }
+    if (numero < raiz->numero) {
+        return buscarAtleta(raiz->izq, numero);
+    }
+    return buscarAtleta(raiz->der, numero);
+}
+    
+    
+    void registrarAtleta(Atleta*& raiz) {
+    int numero;
+    char nombre[20];
+    double tiempo=0;
+    int vuelta;
+    double tiempo_total=0;
+    double promedio=0;
+    cout<<"Ingrese el nombre del atleta: ";
+    cin>>nombre;
+    cout<<"Ingrese el número asignado al atleta: ";
+    cin>>numero;
+
+    Atleta* AtletaExistente = buscarAtleta(raiz, numero);
+    if (AtletaExistente != NULL) {
+        cout << "El número " << numero << " ya ha sido utilizado por otro atleta." << endl;
+        return;
+    }
+	
+	Atleta* nuevoAtleta = crearAtleta(numero, nombre, tiempo, 0, tiempo, 0);
+    raiz = insertarAtleta(raiz, nuevoAtleta); // Insertar el nuevo atleta en el árbol
+}
+
+
+// Función para obtener la altura de un nodo del árbol
+int obtenerAltura(Atleta* Atleta) {
+    if (Atleta == NULL) {
+        return 0;
+    }
+    int alturaIzquierda = obtenerAltura(Atleta->izq);
+    int alturaDerecha = obtenerAltura(Atleta->der);
+    return 1 + max(alturaIzquierda, alturaDerecha);
+}
+
+// Función para obtener el factor de equilibrio de un nodo del árbol
+int obtenerFactorEquilibrio(Atleta* Atleta) {
+    if (Atleta == NULL) {
+        return 0;
+    }
+    int alturaIzquierda = obtenerAltura(Atleta->izq);
+    int alturaDerecha = obtenerAltura(Atleta->der);
+    return alturaIzquierda - alturaDerecha;
+}
+
+// Función para realizar una rotación hacia la izquierda en un nodo del árbol
+Atleta* rotacionIzquierda(Atleta* atleta) {
+    Atleta* atletaDerecha = atleta->der;
+    Atleta* subArbolIzquierdo = atletaDerecha->izq;
+    atletaDerecha->izq = atleta;
+    atleta->der = subArbolIzquierdo;
+    return atletaDerecha;
+}
+
+// Función para realizar una rotación hacia la derecha en un nodo del árbol
+Atleta* rotacionDerecha(Atleta* atleta) {
+    Atleta* atletaIzquierda = atleta->izq;
+    Atleta* subArbolDerecho = atletaIzquierda->der;
+    atletaIzquierda->der = atleta;
+    atleta->izq = subArbolDerecho;
+    return atletaIzquierda;
+}
+
+// Función para balancear un nodo del árbol
+Atleta* balancearAtleta(Atleta* atleta) {
+    int factorEquilibrio = obtenerFactorEquilibrio(atleta);
+    if (factorEquilibrio > 1) {
+        if (obtenerFactorEquilibrio(atleta->izq) < 0) {
+            atleta->izq = rotacionIzquierda(atleta->izq);
+        }
+        return rotacionDerecha(atleta);
+    }
+    if (factorEquilibrio < -1) {
+        if (obtenerFactorEquilibrio(atleta->der) > 0) {
+            atleta->der = rotacionDerecha(atleta->der);
+        }
+        return rotacionIzquierda(atleta);
+    }
+    return atleta;
+}
+
+// Función para balancear todo el árbol
+Atleta* balanceo(Atleta* raiz) {
+    if (raiz == NULL) {
+        return NULL;
+    }
+    raiz->izq = balanceo(raiz->izq);
+    raiz->der = balanceo(raiz->der);
+    return balancearAtleta(raiz);
+}
+
+
+//Recorrido inorden
+void mostrarPorPromedios(Atleta* raiz) {
+    if (raiz == NULL) {
+        return;
+    }
+
+    if (raiz->izq != NULL) {
+        mostrarPorPromedios(raiz->izq);
+    }
+
+    cout << "Atleta: " << raiz->nombre << endl;
+    cout << "Número: " << raiz->numero << endl;
+    cout << "Vuelta: " << raiz->vuelta << endl;
+    cout << "Tiempo: " << raiz->tiempo << endl;
+    cout << "Tiempo total: " << raiz->tiempoTotal << endl;
+    cout << "Promedio: " << raiz->promedio << endl;
+    cout << endl;
+
+    if (raiz->der != NULL) {
+        mostrarPorPromedios(raiz->der);
+    }
+}
+    
+    void mostrar(Atleta* raiz) {
+    if (raiz == NULL) {
+        cout << "No se han registrado Atletas." << endl;
+        return;
+    }
+
+    if (raiz->izq != NULL) {
+        mostrar(raiz->izq);
+    }
+
+    cout << "Atleta: " << raiz->nombre << endl;
+    cout << "Número: " << raiz->numero << endl;
+    cout << "Vuelta: " << raiz->vuelta << endl;
+    cout << "Tiempo: " << raiz->tiempo << endl;
+    cout << "Tiempo total: " << raiz->tiempoTotal << endl;
+    cout << "Promedio: " << raiz->promedio << endl;
+    cout << endl;
+
+    if (raiz->der != NULL) {
+        mostrar(raiz->der);
+    }
+}
+
+
+
+void agregarVuelta(Atleta* raiz) {
+    int numero;
+    cout << "Ingrese el número del atleta: ";
+    cin >> numero;
+
+    Atleta* atleta = buscarAtleta(raiz, numero); // Buscar el corredor
+    if (atleta != NULL) {
+        atleta->vuelta++; // Incrementa el número de vueltas
+        cout << "Es el atleta: " << atleta->nombre << " (" << atleta->vuelta << ") :: " << atleta->tiempo << endl;
+        cout << "Registre el tiempo: " << endl;
+        cin >> atleta->tiempo;
+        atleta->tiempoTotal += atleta->tiempo; // Actualizar el tiempo total
+        if (atleta->vuelta >= 2) {
+            // Calcular promedios si el corredor ha completado al menos 2 vueltas
+               atleta->promedio = atleta->tiempoTotal / atleta->vuelta; // Calcular el nuevo promedio
+        }
+        } else {
+        cout << "No se encontró un corredor con el número " << numero << endl;
+    }
+}
+
+
+
+
+    
+ int main() {
+    Atleta* atletasRaiz = NULL; // Inicializar la raíz del árbol de atleta
+
+    int opcion = 0;
+    do {
+        cout << endl << endl << "MENU PRINCIPAL" << endl;
+        cout << "1. Registrar atletas" << endl;
+        cout << "2. Ver atletas" << endl;
+        cout << "3. Registrar vuelta" << endl;
+        cout << "4. Mostrar promedios" << endl;
+        cout << "5. Balancear" << endl;
+        cout << "6. Salir" << endl;
+        cout << "Seleccione una opción: ";
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1:
+                registrarAtleta(atletasRaiz); 
+                break;
+            case 2:
+                mostrar(atletasRaiz);
+                break;
+            case 3:
+                agregarVuelta(atletasRaiz);
+                break;
+            case 4: mostrarPorPromedios(atletasRaiz);
+				break;
+			case 5: atletasRaiz = balanceo(atletasRaiz); 
+                cout << "Árbol balanceado." << endl;
+            break;	
+            case 6:
+                cout << "Saliendo del programa..." << endl;
+                break;
+            default:
+                cout << "Opción inválida. Intente nuevamente." << endl;
+                break;
+        }
+    } while (opcion != 6);
+
+
+
+    return 0;
+}
